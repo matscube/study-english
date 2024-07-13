@@ -1,35 +1,52 @@
 import fs from "fs";
-import path from "path";
 import OpenAI from "openai";
-import 'dotenv/config'
-
-console.log(process.env.OPENAI_API_KEY);
+import "dotenv/config";
 
 const openai = new OpenAI();
 
-async function main() {
-  const completion = await openai.chat.completions.create({
-    messages: [{ role: "system", content: "You are a helpful assistant." }],
-    model: "gpt-3.5-turbo",
+async function ttsJapanese(text: string, output: string) {
+  const mp3 = await openai.audio.speech.create({
+    model: "tts-1",
+    voice: "fable",
+    input: text,
   });
-
-  console.log(completion.choices[0]);
+  const buffer = Buffer.from(await mp3.arrayBuffer());
+  await fs.promises.writeFile(output, buffer);
 }
-
+async function ttsEnglish(text: string, output: string) {
+  const mp3 = await openai.audio.speech.create({
+    model: "tts-1",
+    voice: "alloy",
+    input: text,
+  });
+  const buffer = Buffer.from(await mp3.arrayBuffer());
+  await fs.promises.writeFile(output, buffer);
+}
+const texts: { ja: string; en: string }[] = [
+  {
+    ja: "会議室を押さえておいてくれますか？",
+    en: "Could you reserve a meeting room?",
+  },
+  {
+    ja: "本日の会議の議題をメールにて添付しましたので、事前にご確認下さいませ。",
+    en: "I have attached the agenda for today’s meeting in this e-mail. Please have a look at it in advance.",
+  },
+  {
+    ja: "会議についていけず、議事録がとれませんでした。",
+    en: "I couldn’t keep up with the meeting and couldn’t take the minutes.",
+  },
+  {
+    ja: "電話会議をさせていただけますか？",
+    en: "Would it be possible for us to have a teleconference?",
+  },
+];
+async function main() {
+  texts.forEach(async (text, index) => {
+    const outputJapanese = `./out/speech-jp-${index}.mp3`;
+    const outputEnglish = `./out/speech-en-${index}.mp3`;
+    await ttsJapanese(text.ja, outputJapanese);
+    await ttsEnglish(text.en, outputEnglish);
+  });
+}
 main();
 
-// const openai = new OpenAI();
-
-// const speechFile = path.resolve("./speech.mp3");
-
-// async function main() {
-//   const mp3 = await openai.audio.speech.create({
-//     model: "tts-1",
-//     voice: "alloy",
-//     input: "Today is a wonderful day to build something people love!",
-//   });
-//   console.log(speechFile);
-//   const buffer = Buffer.from(await mp3.arrayBuffer());
-//   await fs.promises.writeFile(speechFile, buffer);
-// }
-// main();
