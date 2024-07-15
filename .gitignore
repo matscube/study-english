@@ -53,3 +53,6 @@ out/
 
 # SvelteKit
 .svelte-kit
+
+# Others
+tmp/
