@@ -1,6 +1,7 @@
 import fs from "fs";
 import OpenAI from "openai";
 import "dotenv/config";
+import { createVideoFromImage } from "./video";
 
 const openai = new OpenAI();
 
@@ -48,5 +49,6 @@ async function main() {
     await ttsEnglish(text.en, outputEnglish);
   });
 }
-main();
+// main();
 
+createVideoFromImage();
