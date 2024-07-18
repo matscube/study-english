@@ -2,6 +2,7 @@ import fs from "fs";
 import OpenAI from "openai";
 import "dotenv/config";
 import { createVideoFromImage } from "./video";
+import { concatAudios } from "./audio";
 
 const openai = new OpenAI();
 
@@ -51,4 +52,5 @@ async function main() {
 }
 // main();
 
-createVideoFromImage();
+// createVideoFromImage();
+concatAudios();
