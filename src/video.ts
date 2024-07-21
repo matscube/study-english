@@ -19,3 +19,18 @@ export function createVideoFromImage() {
     // .save('out/output.m4v');
     .save('out/output.mp4');
 }
+
+export function mixAudioAndVideo() {
+  const videoPath = 'out/output.mp4';
+  const audioPath = 'out/speech-en-0.mp3';
+  const outputPath = 'out/mixed.mp4';
+  
+  ffmpeg()
+  .addInput(videoPath)
+  .addInput(audioPath)
+  .addOptions(['-map 0:v', '-map 1:a', '-c:v copy'])
+  .format('mp4')
+  .on('error', (error: any) => console.log(error))
+  .on('end', () => console.log(' finished !'))
+  .saveToFile(outputPath)
+}

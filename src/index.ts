@@ -1,6 +1,7 @@
-import { createVideoFromImage } from "./video";
+import { createVideoFromImage, mixAudioAndVideo } from "./video";
 import { concatAudios } from "./audio";
 
 
 // createVideoFromImage();
-concatAudios();
+// concatAudios();
+// mixAudioAndVideo();
