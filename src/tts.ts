@@ -28,7 +28,7 @@ const texts: { ja: string; en: string }[] = [
     en: "Could you reserve a meeting room?",
   },
   {
-    ja: "本日の会議の議題をメールにて添付しましたので。",
+    ja: "本日の会議の議題をメールにて添付しました。",
     en: "I have attached the agenda for today’s meeting in this e-mail.",
   },
   {
