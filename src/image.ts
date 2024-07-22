@@ -1,32 +1,48 @@
-const puppeteer = require('puppeteer');
+import fs from 'fs';
+import { Manuscript } from "./types";
+import puppeteer from 'puppeteer';
+import { createCanvas, loadImage } from 'canvas';
 
-const fs = require('fs');
-const { createCanvas, loadImage } = require('canvas');
+const backgroundImagePath = 'data/29028444_m.jpg';
 
-const convertToDataURL = async (filePath: string) => {
+export async function createImage(props: {
+  script: Manuscript
+  japaneseImagePath: string
+  englishImagePath: string
+}) {
+  // First
+  const firstImageBuffer = await renderComponentToImage({ script: props.script, mode: 'ja' })
+  fs.writeFileSync(props.japaneseImagePath, firstImageBuffer);
+
+  // Second
+  const secondImageBuffer = await renderComponentToImage({ script: props.script, mode: 'en' })
+  fs.writeFileSync(props.englishImagePath, secondImageBuffer);
+}
+
+async function convertToDataURL(filePath: string, type: 'jpeg' | 'png') {
   const img = await loadImage(filePath);
   const canvas = createCanvas(img.width, img.height);
   const ctx = canvas.getContext('2d');
   ctx.drawImage(img, 0, 0);
-  // const dataURL = canvas.toDataURL('image/png');
-  const dataURL = canvas.toDataURL('image/jpeg');
-  return dataURL;
+  switch (type) {
+    case 'jpeg':
+      return canvas.toDataURL('image/jpeg');
+    case 'png':
+      return canvas.toDataURL('image/png');
+  }
 };
 
-// (async () => {
-//   const dataURL = await convertToDataURL('data/29028444_m.jpg');
-//   console.log(dataURL);
-// })();
-
-const renderComponentToImage = async () => {
+async function renderComponentToImage(props: {
+  script: Manuscript
+  mode: 'ja' | 'en'
+}) {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
-  const dataURL = await convertToDataURL('data/29028444_m.jpg')
+  const dataURL = await convertToDataURL(backgroundImagePath, 'jpeg')
 
-  const japaneseText = '本日の会議の議題をメールにて添付しました。';
-  // const englishText = 'I have attached the agenda for today’s meeting in this e-mail.';
-  const englishText = '';
+  const japaneseText = props.script.ja;
+  const englishText = props.mode === 'en' ? props.script.en : '';
 
   const content = `
   <html>
@@ -36,9 +52,6 @@ const renderComponentToImage = async () => {
         margin: 0;
         height: 100%;
         width: 100%;
-        // display: flex;
-        // justify-content: center;
-        // align-items: center;
         background: url('${dataURL}') no-repeat center center;
         background-size: cover;
       }
@@ -53,14 +66,9 @@ const renderComponentToImage = async () => {
         align-items: center;
         row-gap: 100px;
       }
-      // h1 {
-      //   font-family: Arial, sans-serif;
-      //   color: #333;
-      // }
       p {
         font-size: 30px;
         font-family: Arial, sans-serif;
-        // color: #666;
         color: black;
       }
     </style>
@@ -83,12 +91,3 @@ const renderComponentToImage = async () => {
 
   return imageBuffer;
 };
-
-const outputImagePath = 'out/html-image.png'
-export async function createImage() {
-  renderComponentToImage().then((imageBuffer) => {
-    const fs = require('fs');
-    fs.writeFileSync(outputImagePath, imageBuffer);
-    console.log('Image saved!');
-  });
-}

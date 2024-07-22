@@ -1,6 +1,7 @@
 import fs from "fs";
 import OpenAI from "openai";
 import "dotenv/config";
+import { Manuscript } from "./types";
 
 const openai = new OpenAI();
 
@@ -22,33 +23,12 @@ async function ttsEnglish(text: string, output: string) {
   const buffer = Buffer.from(await mp3.arrayBuffer());
   await fs.promises.writeFile(output, buffer);
 }
-const texts: { ja: string; en: string }[] = [
-  {
-    ja: "会議室を押さえておいてくれますか？",
-    en: "Could you reserve a meeting room?",
-  },
-  {
-    ja: "本日の会議の議題をメールにて添付しました。",
-    en: "I have attached the agenda for today’s meeting in this e-mail.",
-  },
-  {
-    ja: "事前にご確認下さいませ。",
-    en: "Please have a look at it in advance.",
-  },
-  {
-    ja: "会議についていけず、議事録がとれませんでした。",
-    en: "I couldn’t keep up with the meeting and couldn’t take the minutes.",
-  },
-  {
-    ja: "電話会議をさせていただけますか？",
-    en: "Would it be possible for us to have a teleconference?",
-  },
-];
-async function runTts() {
-  texts.forEach(async (text, index) => {
+
+async function runTts(scripts: Manuscript[]) {
+  scripts.forEach(async (script, index) => {
     const outputJapanese = `./out/speech-jp-${index}.mp3`;
     const outputEnglish = `./out/speech-en-${index}.mp3`;
-    await ttsJapanese(text.ja, outputJapanese);
-    await ttsEnglish(text.en, outputEnglish);
+    await ttsJapanese(script.ja, outputJapanese);
+    await ttsEnglish(script.en, outputEnglish);
   });
 }
