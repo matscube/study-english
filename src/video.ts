@@ -1,24 +1,25 @@
 const ffmpeg = require('fluent-ffmpeg');
-export function createVideoFromImage() {
-  const imagePath = 'out/html-image-2.png';
-  // const imagePath = 'data/29028444_m.jpg';
-  // make sure you set the correct path to your video file
-  var proc = ffmpeg(imagePath)
-    // loop for 5 seconds
-    .loop(10)
-    // using 25 fps
-    .fps(25)
-    // setup event handlers
-    .on('end', function() {
-      console.log('file has been converted succesfully');
-    })
-    .on('error', function(err: any) {
-      console.log('an error happened: ' + err.message);
-    })
-    // save to file
-    // Either working
-    // .save('out/output.m4v');
-    .save('out/image-video-2.mp4');
+export async function createVideoFromImage(props: {
+  imagePath: string;
+  outputPath: string;
+}): Promise<boolean> {
+  const durationSecond = 2
+  return new Promise((resolve, reject) => {
+    ffmpeg(props.imagePath)
+      .loop(durationSecond)
+      .fps(25)
+      .on('end', function() {
+        resolve(true);
+      })
+      .on('error', function(err: any) {
+        console.error('an error happened: ' + err.message);
+        reject(err);
+      })
+      // save to file
+      // Either working
+      // .save('out/output.m4v');
+      .save(props.outputPath);
+  });
 }
 
 export function mixAudioAndVideo() {

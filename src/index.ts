@@ -19,22 +19,22 @@ const scripts: Manuscript[] = [
     ja: "会議室を押さえておいてくれますか？",
     en: "Could you reserve a meeting room?",
   },
-  {
-    ja: "本日の会議の議題をメールにて添付しました。",
-    en: "I have attached the agenda for today’s meeting in this e-mail.",
-  },
-  {
-    ja: "事前にご確認下さいませ。",
-    en: "Please have a look at it in advance.",
-  },
-  {
-    ja: "会議についていけず、議事録がとれませんでした。",
-    en: "I couldn’t keep up with the meeting and couldn’t take the minutes.",
-  },
-  {
-    ja: "電話会議をさせていただけますか？",
-    en: "Would it be possible for us to have a teleconference?",
-  },
+  // {
+  //   ja: "本日の会議の議題をメールにて添付しました。",
+  //   en: "I have attached the agenda for today’s meeting in this e-mail.",
+  // },
+  // {
+  //   ja: "事前にご確認下さいませ。",
+  //   en: "Please have a look at it in advance.",
+  // },
+  // {
+  //   ja: "会議についていけず、議事録がとれませんでした。",
+  //   en: "I couldn’t keep up with the meeting and couldn’t take the minutes.",
+  // },
+  // {
+  //   ja: "電話会議をさせていただけますか？",
+  //   en: "Would it be possible for us to have a teleconference?",
+  // },
 ];
 
 console.log('Start!');
@@ -45,11 +45,19 @@ scripts.forEach(async (script, index) => {
     japaneseImagePath: `./out/image-${index}-ja.png`,
     englishImagePath: `./out/image-${index}-en.png`,
   });
+  await createVideoFromImage({
+    imagePath: `./out/image-${index}-ja.png`,
+    outputPath: `./out/image-${index}-ja.mp4`,
+  });
+  await createVideoFromImage({
+    imagePath: `./out/image-${index}-en.png`,
+    outputPath: `./out/image-${index}-en.mp4`,
+  });
 });
-// createVideoFromImage();
 // concatAudios();
 // mixAudioAndVideo();
 // concatVideos();
 
+// fix: log after all async tasks are done
 console.log('Done!');
 
