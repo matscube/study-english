@@ -2,6 +2,7 @@ import { concatVideos, createVideoFromImage, mixAudioAndVideo } from "./video";
 import { concatAudios } from "./audio";
 import { createImage } from "./image";
 import { Manuscript } from "./types";
+import { ttsEnglish, ttsJapanese } from "./tts";
 
 /**
  * How to make a video
@@ -19,10 +20,10 @@ const scripts: Manuscript[] = [
     ja: "会議室を押さえておいてくれますか？",
     en: "Could you reserve a meeting room?",
   },
-  // {
-  //   ja: "本日の会議の議題をメールにて添付しました。",
-  //   en: "I have attached the agenda for today’s meeting in this e-mail.",
-  // },
+  {
+    ja: "本日の会議の議題をメールにて添付しました。",
+    en: "I have attached the agenda for today’s meeting in this e-mail.",
+  },
   // {
   //   ja: "事前にご確認下さいませ。",
   //   en: "Please have a look at it in advance.",
@@ -37,9 +38,7 @@ const scripts: Manuscript[] = [
   // },
 ];
 
-console.log('Start!');
-
-scripts.forEach(async (script, index) => {
+async function createVideo(script: Manuscript, index: number): Promise<string> {
   await createImage({
     script,
     japaneseImagePath: `./out/image-${index}-ja.png`,
@@ -53,11 +52,58 @@ scripts.forEach(async (script, index) => {
     imagePath: `./out/image-${index}-en.png`,
     outputPath: `./out/image-${index}-en.mp4`,
   });
-});
-// concatAudios();
-// mixAudioAndVideo();
-// concatVideos();
+  await ttsJapanese({
+    text: script.ja,
+    output: `./out/speech-${index}-ja.mp3`,
+  });
+  await ttsEnglish({
+    text: script.en,
+    output: `./out/speech-${index}-en.mp3`,
+  });
+  await concatAudios({
+    audioPaths: [
+      `./out/speech-${index}-ja.mp3`,
+      `data/silence_5_seconds.mp3`,
+    ],
+    outputPath: `./out/speech-${index}-ja-with-silence.mp3`,
+  });
+  await concatAudios({
+    audioPaths: [
+      `./out/speech-${index}-en.mp3`,
+      `data/silence_5_seconds.mp3`,
+    ],
+    outputPath: `./out/speech-${index}-en-with-silence.mp3`,
+  });
+  await mixAudioAndVideo({
+    videoPath: `./out/image-${index}-ja.mp4`,
+    audioPath: `./out/speech-${index}-ja-with-silence.mp3`,
+    outputPath: `./out/output-${index}-ja.mp4`,
+  });
+  await mixAudioAndVideo({
+    videoPath: `./out/image-${index}-en.mp4`,
+    audioPath: `./out/speech-${index}-en-with-silence.mp3`,
+    outputPath: `./out/output-${index}-en.mp4`,
+  });
+  await concatVideos({
+    videoPaths: [`./out/output-${index}-ja.mp4`, `./out/output-${index}-en.mp4`, `./out/output-${index}-en.mp4`],
+    outputPath: `./out/output-${index}.mp4`,
+  });
+  return `./out/output-${index}.mp4`;
+}
+
+
+async function run() {
+  console.log('Start!');
+  const operations = scripts.map(async (script, index) => {
+    return createVideo(script, index);
+  });
+  const videoPaths = await Promise.all(operations)
+  console.log({ videoPaths })
+
+  await concatVideos({ videoPaths, outputPath: `out/output.mp4`})
+
+  console.log('Done!');
+}
 
 // fix: log after all async tasks are done
-console.log('Done!');
-
+run();
