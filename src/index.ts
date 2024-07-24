@@ -24,70 +24,88 @@ const scripts: Manuscript[] = [
     ja: "本日の会議の議題をメールにて添付しました。",
     en: "I have attached the agenda for today’s meeting in this e-mail.",
   },
-  // {
-  //   ja: "事前にご確認下さいませ。",
-  //   en: "Please have a look at it in advance.",
-  // },
-  // {
-  //   ja: "会議についていけず、議事録がとれませんでした。",
-  //   en: "I couldn’t keep up with the meeting and couldn’t take the minutes.",
-  // },
-  // {
-  //   ja: "電話会議をさせていただけますか？",
-  //   en: "Would it be possible for us to have a teleconference?",
-  // },
+  {
+    ja: "事前にご確認下さいませ。",
+    en: "Please have a look at it in advance.",
+  },
+  {
+    ja: "会議についていけず、議事録がとれませんでした。",
+    en: "I couldn’t keep up with the meeting and couldn’t take the minutes.",
+  },
+  {
+    ja: "電話会議をさせていただけますか？",
+    en: "Would it be possible for us to have a teleconference?",
+  },
 ];
 
 async function createVideo(script: Manuscript, index: number): Promise<string> {
+  console.log(`creating video ${index}... (script: ${script.ja}/${script.en})`);
+
+  // Silent video
   await createImage({
     script,
     japaneseImagePath: `./out/image-${index}-ja.png`,
     englishImagePath: `./out/image-${index}-en.png`,
-  });
-  await createVideoFromImage({
-    imagePath: `./out/image-${index}-ja.png`,
-    outputPath: `./out/image-${index}-ja.mp4`,
-  });
-  await createVideoFromImage({
-    imagePath: `./out/image-${index}-en.png`,
-    outputPath: `./out/image-${index}-en.mp4`,
-  });
-  await ttsJapanese({
-    text: script.ja,
-    output: `./out/speech-${index}-ja.mp3`,
-  });
-  await ttsEnglish({
-    text: script.en,
-    output: `./out/speech-${index}-en.mp3`,
-  });
-  await concatAudios({
-    audioPaths: [
-      `./out/speech-${index}-ja.mp3`,
-      `data/silence_5_seconds.mp3`,
-    ],
-    outputPath: `./out/speech-${index}-ja-with-silence.mp3`,
-  });
-  await concatAudios({
-    audioPaths: [
-      `./out/speech-${index}-en.mp3`,
-      `data/silence_5_seconds.mp3`,
-    ],
-    outputPath: `./out/speech-${index}-en-with-silence.mp3`,
-  });
-  await mixAudioAndVideo({
-    videoPath: `./out/image-${index}-ja.mp4`,
-    audioPath: `./out/speech-${index}-ja-with-silence.mp3`,
-    outputPath: `./out/output-${index}-ja.mp4`,
-  });
-  await mixAudioAndVideo({
-    videoPath: `./out/image-${index}-en.mp4`,
-    audioPath: `./out/speech-${index}-en-with-silence.mp3`,
-    outputPath: `./out/output-${index}-en.mp4`,
-  });
+  }),
+  await Promise.all([
+    createVideoFromImage({
+      imagePath: `./out/image-${index}-ja.png`,
+      outputPath: `./out/image-${index}-ja.mp4`,
+    }),
+    createVideoFromImage({
+      imagePath: `./out/image-${index}-en.png`,
+      outputPath: `./out/image-${index}-en.mp4`,
+    })
+  ]);
+
+  // Audio
+  await Promise.all([
+    ttsJapanese({
+      text: script.ja,
+      output: `./out/speech-${index}-ja.mp3`,
+    }),
+    ttsEnglish({
+      text: script.en,
+      output: `./out/speech-${index}-en.mp3`,
+    })
+  ])
+  await Promise.all([
+    concatAudios({
+      audioPaths: [
+        `./out/speech-${index}-ja.mp3`,
+        `data/silence_5_seconds.mp3`,
+      ],
+      outputPath: `./out/speech-${index}-ja-with-silence.mp3`,
+    }),
+    concatAudios({
+      audioPaths: [
+        `./out/speech-${index}-en.mp3`,
+        `data/silence_5_seconds.mp3`,
+      ],
+      outputPath: `./out/speech-${index}-en-with-silence.mp3`,
+    })
+  ]);
+
+  // Mix audio to video
+  await Promise.all([
+    mixAudioAndVideo({
+      videoPath: `./out/image-${index}-ja.mp4`,
+      audioPath: `./out/speech-${index}-ja-with-silence.mp3`,
+      outputPath: `./out/output-${index}-ja.mp4`,
+    }),
+    mixAudioAndVideo({
+      videoPath: `./out/image-${index}-en.mp4`,
+      audioPath: `./out/speech-${index}-en-with-silence.mp3`,
+      outputPath: `./out/output-${index}-en.mp4`,
+    })
+  ]);
+
+  // Concat videos
   await concatVideos({
     videoPaths: [`./out/output-${index}-ja.mp4`, `./out/output-${index}-en.mp4`, `./out/output-${index}-en.mp4`],
     outputPath: `./out/output-${index}.mp4`,
   });
+  console.log(`created video ${index}!`);
   return `./out/output-${index}.mp4`;
 }
 

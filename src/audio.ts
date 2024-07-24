@@ -40,7 +40,7 @@ export async function concatAudios(props: {
         reject(err);
       })
       .on("end", () => {
-        console.log("Files have been concatenated successfully.");
+        // console.log("Files have been concatenated successfully.");
         resolve(true);
       })
       .mergeToFile(props.outputPath);
