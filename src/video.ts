@@ -41,7 +41,7 @@ export async function mixAudioAndVideo(props: {
         reject(error);
       })
       .on("end", () => {
-        console.log(" finished !");
+        // console.log(" finished !");
         resolve(true);
       })
       .saveToFile(props.outputPath);
@@ -66,7 +66,7 @@ export async function concatVideos(props: {
         reject(error);
       })
       .on("end", () => {
-        console.log(" finished !");
+        // console.log(" finished !");
         resolve(true);
       })
       .mergeToFile(props.outputPath);
