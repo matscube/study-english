@@ -23,12 +23,3 @@ export async function ttsEnglish(props: { text: string, output: string }) {
   const buffer = Buffer.from(await mp3.arrayBuffer());
   await fs.promises.writeFile(props.output, buffer);
 }
-
-// async function runTts(scripts: Manuscript[]) {
-//   scripts.forEach(async (script, index) => {
-//     const outputJapanese = `./out/speech-jp-${index}.mp3`;
-//     const outputEnglish = `./out/speech-en-${index}.mp3`;
-//     await ttsJapanese(script.ja, outputJapanese);
-//     await ttsEnglish(script.en, outputEnglish);
-//   });
-// }

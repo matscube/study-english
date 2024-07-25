@@ -123,5 +123,4 @@ async function run() {
   console.log('Done!');
 }
 
-// fix: log after all async tasks are done
 run();

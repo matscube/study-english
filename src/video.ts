@@ -27,9 +27,6 @@ export async function mixAudioAndVideo(props: {
   audioPath: string;
   outputPath: string;
 }): Promise<boolean> {
-  // const videoPath = 'out/image-video-2.mp4';
-  // const audioPath = 'out/speech-en-1.mp3';
-  // const outputPath = 'out/output-1-en.mp4';
   return new Promise((resolve, reject) => {
     ffmpeg()
       .addInput(props.videoPath)
@@ -41,7 +38,6 @@ export async function mixAudioAndVideo(props: {
         reject(error);
       })
       .on("end", () => {
-        // console.log(" finished !");
         resolve(true);
       })
       .saveToFile(props.outputPath);
@@ -52,9 +48,6 @@ export async function concatVideos(props: {
   videoPaths: string[];
   outputPath: string;
 }): Promise<boolean> {
-  // const videoPaths = ["out/output-1-jp.mp4", "out/output-1-en.mp4"];
-  // const outputPath = "out/output.mp4";
-
   const command = ffmpeg();
   props.videoPaths.forEach((videoPath) => {
     command.input(videoPath);
@@ -66,7 +59,6 @@ export async function concatVideos(props: {
         reject(error);
       })
       .on("end", () => {
-        // console.log(" finished !");
         resolve(true);
       })
       .mergeToFile(props.outputPath);
