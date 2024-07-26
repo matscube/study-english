@@ -1,6 +1,6 @@
 import { concatVideos, createVideoFromImage, mixAudioAndVideo } from "./video";
 import { concatAudios } from "./audio";
-import { createImage } from "./image";
+import { createImage, testRenderImage } from "./image";
 import { Manuscript } from "./types";
 import { ttsEnglish, ttsJapanese } from "./tts";
 
@@ -124,3 +124,7 @@ async function run() {
 }
 
 run();
+
+// TODO: create review script
+// TODO: add a number of script to the image
+// testRenderImage();

@@ -32,6 +32,17 @@ async function convertToDataURL(filePath: string, type: 'jpeg' | 'png') {
   }
 };
 
+export async function testRenderImage() {
+  const imageBuffer = await renderComponentToImage({
+    script: {
+      ja: "会議についていけず、議事録がとれませんでした。",
+      en: "I couldn’t keep up with the meeting and couldn’t take the minutes.",
+    },
+    mode: 'en',
+  });
+  fs.writeFileSync('out/test.png', imageBuffer);
+}
+
 async function renderComponentToImage(props: {
   script: Manuscript
   mode: 'ja' | 'en'
@@ -42,12 +53,21 @@ async function renderComponentToImage(props: {
   const dataURL = await convertToDataURL(backgroundImagePath, 'jpeg')
 
   const japaneseText = props.script.ja;
-  const englishText = props.mode === 'en' ? props.script.en : '';
+  const englishText = props.script.en;
+  const englishTextModifierClass = props.mode === 'ja' ? 'script-en--transparent' : '';
 
   const content = `
   <html>
   <head>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
     <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
       body {
         margin: 0;
         height: 100%;
@@ -58,34 +78,52 @@ async function renderComponentToImage(props: {
       .content {
         height: 100%;
         width 100%;
-        padding: 100px;
-        border: 1px solid black;
-        background: rgba(255, 255, 255, 0.5);
+        padding-left: 240px;
+        padding-right: 240px;
+        background: rgba(255, 255, 255, 0.3);
+
         display: flex;
         flex-direction: column;
         align-items: center;
-        row-gap: 100px;
+        justify-content: center;
+        row-gap: 80px;
       }
-      p {
-        font-size: 30px;
-        font-family: Arial, sans-serif;
-        color: black;
+      .script-ja {
+        color: #1a1afb;
+        // font-family: 'Noto Sans JP', sans-serif;
+        font-family: "M PLUS Rounded 1c", sans-serif;
+        font-size: 48px;
+        font-weight: 400;
+        text-align: center;
+      }
+      .script-en {
+        color: #0f1419;
+        font-family: "M PLUS Rounded 1c", sans-serif;
+        font-size: 64px;
+        font-weight: 700;
+        text-align: center;
+      }
+      .script-en--transparent {
+        color: transparent!important;
       }
     </style>
   </head>
   <body>
     <div class="content">
-      <p>${japaneseText}</p>
-      <p>${englishText}</p>
+      <p class="script-ja">${japaneseText}</p>
+      <p class="script-en ${englishTextModifierClass}">${englishText}</p>
     </div>
   </body>
 </html>
   `;
 
-  await page.setContent(content);
-  await page.setViewport({ width: 800, height: 600 });
+  await page.setContent(content, {
+    waitUntil: ['networkidle0', 'load', 'domcontentloaded']
+  });
+  await page.setViewport({ width: 1600, height: 900 }); // Youtube aspect-ratio: 16 / 9
+  await page.evaluateHandle('document.fonts.ready');
 
-  const imageBuffer = await page.screenshot({ type: 'png' });
+  const imageBuffer = await page.screenshot({ type: 'png', fullPage: true });
 
   await browser.close();
 
