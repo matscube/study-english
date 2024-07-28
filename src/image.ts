@@ -34,6 +34,8 @@ async function convertToDataURL(filePath: string, type: 'jpeg' | 'png') {
 
 export async function testRenderImage() {
   const imageBuffer = await renderComponentToImage({
+    index: 21,
+    isReviewing: true,
     script: {
       ja: "会議についていけず、議事録がとれませんでした。",
       en: "I couldn’t keep up with the meeting and couldn’t take the minutes.",
@@ -44,6 +46,8 @@ export async function testRenderImage() {
 }
 
 async function renderComponentToImage(props: {
+  index?: number
+  isReviewing?: boolean
   script: Manuscript
   mode: 'ja' | 'en'
 }) {
@@ -55,6 +59,9 @@ async function renderComponentToImage(props: {
   const japaneseText = props.script.ja;
   const englishText = props.script.en;
   const englishTextModifierClass = props.mode === 'ja' ? 'script-en--transparent' : '';
+
+  const indexDisplay = props.index ? `#${props.index}` : '';
+  const reviewDisplay = props.isReviewing ? `Review` : '';
 
   const content = `
   <html>
@@ -87,6 +94,8 @@ async function renderComponentToImage(props: {
         align-items: center;
         justify-content: center;
         row-gap: 80px;
+
+        position: relative;
       }
       .script-ja {
         color: #1a1afb;
@@ -106,10 +115,33 @@ async function renderComponentToImage(props: {
       .script-en--transparent {
         color: transparent!important;
       }
+      .script-caption {
+        position: absolute;
+        left: 32px;
+        top: 32px;
+        color: #1a1afb;
+        font-size: 48px;
+        font-family: "M PLUS Rounded 1c", sans-serif;
+        font-weight: bold;
+
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+      }
+      .script-caption-index {
+
+      }
+      .script-caption-review {
+        color: #F711FA;
+      }
     </style>
   </head>
   <body>
     <div class="content">
+      <div class="script-caption">
+        <span class="script-caption-index">${indexDisplay}</span>
+        <span class="script-caption-review">&nbsp;${reviewDisplay}</span>
+      </div>
       <p class="script-ja">${japaneseText}</p>
       <p class="script-en ${englishTextModifierClass}">${englishText}</p>
     </div>
