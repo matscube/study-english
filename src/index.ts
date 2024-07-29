@@ -38,14 +38,17 @@ const scripts: Manuscript[] = [
   },
 ];
 
-async function createVideo(script: Manuscript, index: number): Promise<string> {
+async function createVideo(script: Manuscript, index: number): Promise<{ normalPath: string, reviewPath: string }> {
   console.log(`creating video ${index}... (script: ${script.ja}/${script.en})`);
 
   // Silent video
   await createImage({
+    index,
     script,
     japaneseImagePath: `./out/image-${index}-ja.png`,
     englishImagePath: `./out/image-${index}-en.png`,
+    japaneseReviewImagePath: `./out/image-${index}-ja-review.png`,
+    englishReviewImagePath: `./out/image-${index}-en-review.png`,
   }),
   await Promise.all([
     createVideoFromImage({
@@ -55,7 +58,15 @@ async function createVideo(script: Manuscript, index: number): Promise<string> {
     createVideoFromImage({
       imagePath: `./out/image-${index}-en.png`,
       outputPath: `./out/image-${index}-en.mp4`,
-    })
+    }),
+    createVideoFromImage({
+      imagePath: `./out/image-${index}-ja-review.png`,
+      outputPath: `./out/image-${index}-ja-review.mp4`,
+    }),
+    createVideoFromImage({
+      imagePath: `./out/image-${index}-en-review.png`,
+      outputPath: `./out/image-${index}-en-review.mp4`,
+    }),
   ]);
 
   // Audio
@@ -97,16 +108,39 @@ async function createVideo(script: Manuscript, index: number): Promise<string> {
       videoPath: `./out/image-${index}-en.mp4`,
       audioPath: `./out/speech-${index}-en-with-silence.mp3`,
       outputPath: `./out/output-${index}-en.mp4`,
-    })
+    }),
+    mixAudioAndVideo({
+      videoPath: `./out/image-${index}-ja-review.mp4`,
+      audioPath: `./out/speech-${index}-ja-with-silence.mp3`,
+      outputPath: `./out/output-${index}-ja-review.mp4`,
+    }),
+    mixAudioAndVideo({
+      videoPath: `./out/image-${index}-en-review.mp4`,
+      audioPath: `./out/speech-${index}-en-with-silence.mp3`,
+      outputPath: `./out/output-${index}-en-review.mp4`,
+    }),
   ]);
 
   // Concat videos
-  await concatVideos({
-    videoPaths: [`./out/output-${index}-ja.mp4`, `./out/output-${index}-en.mp4`, `./out/output-${index}-en.mp4`],
-    outputPath: `./out/output-${index}.mp4`,
-  });
+  await Promise.all([
+    await concatVideos({
+      // repeat the English video twice
+      // videoPaths: [`./out/output-${index}-ja.mp4`, `./out/output-${index}-en.mp4`, `./out/output-${index}-en.mp4`],
+      videoPaths: [`./out/output-${index}-ja.mp4`, `./out/output-${index}-en.mp4`],
+      outputPath: `./out/output-${index}.mp4`,
+    }),
+    await concatVideos({
+      // repeat the English video twice
+      // videoPaths: [`./out/output-${index}-ja-review.mp4`, `./out/output-${index}-en-review.mp4`, `./out/output-${index}-en-review.mp4`],
+      videoPaths: [`./out/output-${index}-ja-review.mp4`, `./out/output-${index}-en-review.mp4`],
+      outputPath: `./out/output-${index}-review.mp4`,
+    }),
+  ]);
   console.log(`created video ${index}!`);
-  return `./out/output-${index}.mp4`;
+  return {
+    normalPath: `./out/output-${index}.mp4`,
+    reviewPath: `./out/output-${index}-review.mp4`,
+  };
 }
 
 
@@ -117,14 +151,17 @@ async function run() {
   });
   const videoPaths = await Promise.all(operations)
   console.log({ videoPaths })
+  const normalVideoPaths = videoPaths.map(({ normalPath }) => normalPath);
+  const reviewVideoPaths = videoPaths.map(({ reviewPath }) => reviewPath);
+  const sortedVideoPaths = normalVideoPaths.concat(reviewVideoPaths);
+  console.log({ sortedVideoPaths })
 
-  await concatVideos({ videoPaths, outputPath: `out/output.mp4`})
+  await concatVideos({ videoPaths: sortedVideoPaths, outputPath: `out/output.mp4`})
 
   console.log('Done!');
 }
 
 run();
 
-// TODO: create review script
-// TODO: add a number of script to the image
+// For image rendering test
 // testRenderImage();

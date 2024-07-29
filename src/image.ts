@@ -3,20 +3,45 @@ import { Manuscript } from "./types";
 import puppeteer from 'puppeteer';
 import { createCanvas, loadImage } from 'canvas';
 
-const backgroundImagePath = 'data/29028444_m.jpg';
+// const backgroundImagePath = 'data/29028444_m.jpg';
+const backgroundImagePath = 'data/white_00029.jpg';
 
 export async function createImage(props: {
+  index: number
   script: Manuscript
   japaneseImagePath: string
   englishImagePath: string
-}) {
-  // First
-  const firstImageBuffer = await renderComponentToImage({ script: props.script, mode: 'ja' })
-  fs.writeFileSync(props.japaneseImagePath, firstImageBuffer);
-
-  // Second
-  const secondImageBuffer = await renderComponentToImage({ script: props.script, mode: 'en' })
-  fs.writeFileSync(props.englishImagePath, secondImageBuffer);
+  japaneseReviewImagePath: string
+  englishReviewImagePath: string
+}): Promise<boolean> {
+  const results = await Promise.all([
+    // ja
+    new Promise<boolean>(async (resolve, _reject) => {
+      // index: 0, 1, 2... / no: 1, 2, 3...
+      const buffer = await renderComponentToImage({ no: props.index + 1, script: props.script, mode: 'ja' })
+      fs.writeFileSync(props.japaneseImagePath, buffer);
+      resolve(true);
+    }),
+    // en
+    new Promise<boolean>(async (resolve, _reject) => {
+      const buffer = await renderComponentToImage({ no: props.index + 1, script: props.script, mode: 'en' })
+      fs.writeFileSync(props.englishImagePath, buffer);
+      resolve(true);
+    }),
+    // ja review
+    new Promise<boolean>(async (resolve, _reject) => {
+      const buffer = await renderComponentToImage({ no: props.index + 1, isReviewing: true, script: props.script, mode: 'ja' })
+      fs.writeFileSync(props.japaneseReviewImagePath, buffer);
+      resolve(true);
+    }),
+    // en review
+    new Promise<boolean>(async (resolve, _reject) => {
+      const buffer = await renderComponentToImage({ no: props.index + 1, isReviewing: true, script: props.script, mode: 'en' })
+      fs.writeFileSync(props.englishReviewImagePath, buffer);
+      resolve(true);
+    }),
+  ]);
+  return results.reduce((acc, cur) => acc && cur, true);
 }
 
 async function convertToDataURL(filePath: string, type: 'jpeg' | 'png') {
@@ -34,7 +59,7 @@ async function convertToDataURL(filePath: string, type: 'jpeg' | 'png') {
 
 export async function testRenderImage() {
   const imageBuffer = await renderComponentToImage({
-    index: 21,
+    no: 21,
     isReviewing: true,
     script: {
       ja: "会議についていけず、議事録がとれませんでした。",
@@ -46,7 +71,7 @@ export async function testRenderImage() {
 }
 
 async function renderComponentToImage(props: {
-  index?: number
+  no?: number
   isReviewing?: boolean
   script: Manuscript
   mode: 'ja' | 'en'
@@ -60,7 +85,7 @@ async function renderComponentToImage(props: {
   const englishText = props.script.en;
   const englishTextModifierClass = props.mode === 'ja' ? 'script-en--transparent' : '';
 
-  const indexDisplay = props.index ? `#${props.index}` : '';
+  const indexDisplay = props.no ? `#${props.no}` : '';
   const reviewDisplay = props.isReviewing ? `Review` : '';
 
   const content = `
@@ -119,7 +144,8 @@ async function renderComponentToImage(props: {
         position: absolute;
         left: 32px;
         top: 32px;
-        color: #1a1afb;
+        // color: #1a1afb;
+        color: #0f1419;
         font-size: 48px;
         font-family: "M PLUS Rounded 1c", sans-serif;
         font-weight: bold;
