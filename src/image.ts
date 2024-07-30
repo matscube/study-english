@@ -3,8 +3,8 @@ import { Manuscript } from "./types";
 import puppeteer from 'puppeteer';
 import { createCanvas, loadImage } from 'canvas';
 
-// const backgroundImagePath = 'data/29028444_m.jpg';
-const backgroundImagePath = 'data/white_00029.jpg';
+// const backgroundImagePath = 'src/assets/images/29028444_m.jpg';
+const backgroundImagePath = 'src/assets/images/white_00029.jpg';
 
 export async function createImage(props: {
   index: number

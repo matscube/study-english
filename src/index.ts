@@ -15,26 +15,67 @@ import { ttsEnglish, ttsJapanese } from "./tts";
  * 6. Combine the videos into one.
  */
 
+// TODO: scriptをgitignoreにおけるようにする
 const scripts: Manuscript[] = [
+  // {
+  //   ja: "会議室を押さえておいてくれますか？",
+  //   en: "Could you reserve a meeting room?",
+  // },
+  // {
+  //   ja: "本日の会議の議題をメールにて添付しました。",
+  //   en: "I have attached the agenda for today’s meeting in this e-mail.",
+  // },
+  // {
+  //   ja: "事前にご確認下さいませ。",
+  //   en: "Please have a look at it in advance.",
+  // },
+  // {
+  //   ja: "会議についていけず、議事録がとれませんでした。",
+  //   en: "I couldn’t keep up with the meeting and couldn’t take the minutes.",
+  // },
+  // {
+  //   ja: "電話会議をさせていただけますか？",
+  //   en: "Would it be possible for us to have a teleconference?",
+  // },
   {
-    ja: "会議室を押さえておいてくれますか？",
-    en: "Could you reserve a meeting room?",
+    ja: `こんにちは！聞こえますか？`,
+    en: `Hi! Can you hear me OK?`,
   },
   {
-    ja: "本日の会議の議題をメールにて添付しました。",
-    en: "I have attached the agenda for today’s meeting in this e-mail.",
+    ja: `画面を共有しましたが、はっきり見えていますか？`,
+    en: `I've shared my screen. Can you see it clearly?`,
   },
   {
-    ja: "事前にご確認下さいませ。",
-    en: "Please have a look at it in advance.",
+    ja: `では、始めましょう。`,
+    en: `Let's start, then.`,
   },
   {
-    ja: "会議についていけず、議事録がとれませんでした。",
-    en: "I couldn’t keep up with the meeting and couldn’t take the minutes.",
+    ja: `これがプロジェクトの全体像です。`,
+    en: `This is a bird's-eye view of the project.`,
   },
   {
-    ja: "電話会議をさせていただけますか？",
-    en: "Would it be possible for us to have a teleconference?",
+    ja: `一通りご説明します。`,
+    en: `Let me walk you through it.`,
+  },
+  {
+    ja: `これが基本的に全てのアイテムを表示する「ホーム画面」です。`,
+    en: `This is basically a Home screen that shows all items.`,
+  },
+  {
+    ja: `各アイテムの情報を示す「詳細画面」には、「今すぐ購入」ボタンがあります。`,
+    en: `There's a Details screen that has information about each item with ADD TO CART button.`,
+  },
+  {
+    ja: `カテゴリーを表示する「サブメニュー」もあります。`,
+    en: `There's also a Submenu with the categories.`,
+  },
+  {
+    ja: `我々は新商品のECサイトを構築します。`,
+    en: `We're building an e-commerce website of the new products.`,
+  },
+  {
+    ja: `クライアントの既存のウェブサイトの2ページの開発を、20営業日で行います。`,
+    en: `We have 20 business days to develop two pages for the client's existing website.`,
   },
 ];
 
@@ -84,14 +125,14 @@ async function createVideo(script: Manuscript, index: number): Promise<{ normalP
     concatAudios({
       audioPaths: [
         `./out/speech-${index}-ja.mp3`,
-        `data/silence_5_seconds.mp3`,
+        `src/assets/audios/silence_5_seconds.mp3`,
       ],
       outputPath: `./out/speech-${index}-ja-with-silence.mp3`,
     }),
     concatAudios({
       audioPaths: [
         `./out/speech-${index}-en.mp3`,
-        `data/silence_5_seconds.mp3`,
+        `src/assets/audios/silence_5_seconds.mp3`,
       ],
       outputPath: `./out/speech-${index}-en-with-silence.mp3`,
     })
