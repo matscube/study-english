@@ -1,0 +1,16 @@
+import { Manuscript } from "../../types";
+
+export const scripts: Manuscript[] = [
+  {
+    ja: `こんにちは！聞こえますか？`,
+    en: `Hi! Can you hear me OK?`,
+  },
+  {
+    ja: `画面を共有しましたが、はっきり見えていますか？`,
+    en: `I've shared my screen. Can you see it clearly?`,
+  },
+  {
+    ja: `では、始めましょう。`,
+    en: `Let's start, then.`,
+  },
+];

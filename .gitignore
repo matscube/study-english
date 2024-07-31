@@ -54,5 +54,8 @@ out/
 # SvelteKit
 .svelte-kit
 
+# Scripts
+src/assets/scripts/index.ts
+
 # Others
 tmp/
