@@ -55,7 +55,9 @@ out/
 .svelte-kit
 
 # Scripts
-src/assets/scripts/index.ts
+src/assets/scripts/**/*
+!src/assets/scripts/index.ts.sample
+# src/assets/scripts/index.ts
 
 # Others
 tmp/
