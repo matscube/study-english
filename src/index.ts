@@ -4,6 +4,7 @@ import { createImage, testRenderImage } from "./image";
 import { Manuscript } from "./types";
 import { ttsEnglish, ttsJapanese } from "./tts";
 import { scripts } from "./assets/scripts";
+import { generateScripts } from "./script";
 
 /**
  * How to make a video
@@ -142,3 +143,6 @@ run();
 
 // For image rendering test
 // testRenderImage();
+
+// For generating scripts
+// generateScripts();
