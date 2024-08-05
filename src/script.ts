@@ -10,8 +10,70 @@ const openai = new OpenAI();
  * TODO: generate json string formatted as Manuscript[]
  * TODO: give the situation by a command run
  * TODO: use few-shot prompting
+ * 
+ * TODO: specify output json format in prompt
+ * TODO: receive output as javascript object
+ * TODO: validate the output by using zod
  */
 export async function generateScripts() {
+  createConversation();
+}
+
+async function createConversation() {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content:
+            `
+            英会話の練習のために、3分程度のオンライン会議の会話スクリプトを書いてください。
+            参加者は2名です。
+            Aliceは営業部長です。
+            Bobは開発部のエンジニアです。
+            回答は英語と日本語の両方を出力してください。
+            回答フォーマットはJavaScriptのObject配列形式で出力してください。
+            `,
+        },
+        {
+          role: "user",
+          content:
+          `
+          シチュエーションはスプリント開発MTGです。
+          議題は前のスプリントの進捗確認と次のスプリントのタスクを決めることです。
+          会議の終わりには次のMTGをスケジュール調整してください。
+
+          ### Output Format Sample
+          {
+            conversation: [
+              {
+                role: 'Alice',
+                ja: 'Hi Bob, how are you today?',
+                en: 'お疲れ様です、ボブ。今日の調子はどうですか？',
+              },
+              {
+                role: 'Bob',
+                ja: 'Hi Alice, I'm good, thanks. How about you?',
+                en: 'お疲れ様です、アリスさん。良い調子です。ありがとうございます。そちらはどうですか？',
+              },
+            ]
+          }
+          `
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    });
+
+    const generatedScripts = completion.choices[0].message.content;
+    console.log(generatedScripts);
+  } catch (error) {
+    console.error("Error generating scripts:", error);
+  }
+}
+
+async function createCommonlyUsedPhrases() {
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -24,13 +86,16 @@ export async function generateScripts() {
             * Generate 10 pairs of sentences, each with an English sentence and its Japanese translation.
             * The sentences should cover various everyday situations and language levels.
             * Please think of commonly used phrases for adjusting the schedule of the next meeting during internal online meetings.
-            * Generate sentences in a conversational format.
             `,
         },
         {
           role: "user",
           content:
-            "Generate 10 English learning scripts with Japanese translations.",
+            // 会議の終わりに議論の結果の再確認をする
+            "Please think of commonly used phrases for reconfirming the results of the discussion at the end of the meeting",
+
+            // スケジュール調整
+            // "Please think of commonly used phrases for adjusting the schedule of the next meeting during internal online meetings.",
         },
       ],
       temperature: 0.7,

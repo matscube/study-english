@@ -139,7 +139,7 @@ async function run() {
   console.log('Done!');
 }
 
-run();
+// run();
 
 // For image rendering test
 // testRenderImage();
