@@ -1,5 +1,5 @@
 import { concatVideos, createVideoFromImage, mixAudioAndVideo } from "./video";
-import { concatAudios } from "./audio";
+import { concatAudios, volumeUp } from "./audio";
 import { createImage, testRenderImage } from "./image";
 import { Manuscript } from "./types";
 import { ttsEnglish, ttsJapanese } from "./tts";
@@ -58,17 +58,29 @@ async function createVideo(script: Manuscript, index: number): Promise<{ normalP
       output: `./out/speech-${index}-en.mp3`,
     })
   ])
+
+  await Promise.all([
+    volumeUp({
+      audioPath: `./out/speech-${index}-ja.mp3`,
+      outputPath: `./out/speech-${index}-ja-volume-up.mp3`,
+    }),
+    volumeUp({
+      audioPath: `./out/speech-${index}-en.mp3`,
+      outputPath: `./out/speech-${index}-en-volume-up.mp3`,
+    })
+  ]);
+
   await Promise.all([
     concatAudios({
       audioPaths: [
-        `./out/speech-${index}-ja.mp3`,
+        `./out/speech-${index}-ja-volume-up.mp3`,
         `src/assets/audios/silence_5_seconds.mp3`,
       ],
       outputPath: `./out/speech-${index}-ja-with-silence.mp3`,
     }),
     concatAudios({
       audioPaths: [
-        `./out/speech-${index}-en.mp3`,
+        `./out/speech-${index}-en-volume-up.mp3`,
         `src/assets/audios/silence_5_seconds.mp3`,
       ],
       outputPath: `./out/speech-${index}-en-with-silence.mp3`,
