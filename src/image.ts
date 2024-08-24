@@ -2,6 +2,9 @@ import fs from 'fs';
 import { Manuscript } from "./types";
 import puppeteer from 'puppeteer';
 import { createCanvas, loadImage } from 'canvas';
+import path from 'path';
+import { AppConfig } from './config';
+import { generateSecureRandomHash } from './util';
 
 // const backgroundImagePath = 'src/assets/images/29028444_m.jpg';
 const backgroundImagePath = 'src/assets/images/white_00029.jpg';
@@ -9,39 +12,55 @@ const backgroundImagePath = 'src/assets/images/white_00029.jpg';
 export async function createImage(props: {
   index: number
   script: Manuscript
+}): Promise<{
   japaneseImagePath: string
   englishImagePath: string
   japaneseReviewImagePath: string
   englishReviewImagePath: string
-}): Promise<boolean> {
+}> {
+  const japaneseImagePath = path.join(AppConfig.tmpDir, `image-${props.index}-ja-${generateSecureRandomHash()}.png`);
+  const englishImagePath = path.join(AppConfig.tmpDir, `image-${props.index}-en-${generateSecureRandomHash()}.png`);
+  const japaneseReviewImagePath = path.join(AppConfig.tmpDir, `image-${props.index}-ja-review-${generateSecureRandomHash()}.png`);
+  const englishReviewImagePath = path.join(AppConfig.tmpDir, `image-${props.index}-en-review-${generateSecureRandomHash()}.png`);
+
   const results = await Promise.all([
     // ja
     new Promise<boolean>(async (resolve, _reject) => {
       // index: 0, 1, 2... / no: 1, 2, 3...
       const buffer = await renderComponentToImage({ no: props.index + 1, script: props.script, mode: 'ja' })
-      fs.writeFileSync(props.japaneseImagePath, buffer);
+      fs.writeFileSync(japaneseImagePath, buffer);
       resolve(true);
     }),
     // en
     new Promise<boolean>(async (resolve, _reject) => {
       const buffer = await renderComponentToImage({ no: props.index + 1, script: props.script, mode: 'en' })
-      fs.writeFileSync(props.englishImagePath, buffer);
+      fs.writeFileSync(englishImagePath, buffer);
       resolve(true);
     }),
     // ja review
     new Promise<boolean>(async (resolve, _reject) => {
       const buffer = await renderComponentToImage({ no: props.index + 1, isReviewing: true, script: props.script, mode: 'ja' })
-      fs.writeFileSync(props.japaneseReviewImagePath, buffer);
+      fs.writeFileSync(japaneseReviewImagePath, buffer);
       resolve(true);
     }),
     // en review
     new Promise<boolean>(async (resolve, _reject) => {
       const buffer = await renderComponentToImage({ no: props.index + 1, isReviewing: true, script: props.script, mode: 'en' })
-      fs.writeFileSync(props.englishReviewImagePath, buffer);
+      fs.writeFileSync(englishReviewImagePath, buffer);
       resolve(true);
     }),
   ]);
-  return results.reduce((acc, cur) => acc && cur, true);
+  const result = results.reduce((acc, cur) => acc && cur, true);
+  if (result) {
+    return {
+      japaneseImagePath,
+      englishImagePath,
+      japaneseReviewImagePath,
+      englishReviewImagePath,
+    };
+  } else {
+    throw new Error('Failed to create images.');
+  }
 }
 
 async function convertToDataURL(filePath: string, type: 'jpeg' | 'png') {
@@ -78,6 +97,7 @@ async function renderComponentToImage(props: {
 }) {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
+  // await page.setDefaultNavigationTimeout(0); // 0 means no timeout
 
   const dataURL = await convertToDataURL(backgroundImagePath, 'jpeg')
 
@@ -176,7 +196,8 @@ async function renderComponentToImage(props: {
   `;
 
   await page.setContent(content, {
-    waitUntil: ['networkidle0', 'load', 'domcontentloaded']
+    waitUntil: ['networkidle0', 'load', 'domcontentloaded'],
+    timeout: 0,
   });
   await page.setViewport({ width: 1600, height: 900 }); // Youtube aspect-ratio: 16 / 9
   await page.evaluateHandle('document.fonts.ready');

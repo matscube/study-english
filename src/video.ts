@@ -1,15 +1,23 @@
+import path from "path";
+import { AppConfig } from "./config";
+import { generateSecureRandomHash } from "./util";
+
 const ffmpeg = require("fluent-ffmpeg");
 export async function createVideoFromImage(props: {
   imagePath: string;
+}): Promise<{
   outputPath: string;
-}): Promise<boolean> {
+}> {
+  const outputPath = path.join(AppConfig.tmpDir, `image-${generateSecureRandomHash()}.mp4`)
   const durationSecond = 2;
   return new Promise((resolve, reject) => {
     ffmpeg(props.imagePath)
       .loop(durationSecond)
       .fps(25)
       .on("end", function () {
-        resolve(true);
+        resolve({
+          outputPath,
+        });
       })
       .on("error", function (err: any) {
         console.error("an error happened: " + err.message);
@@ -18,15 +26,17 @@ export async function createVideoFromImage(props: {
       // save to file
       // Either working
       // .save('out/output.m4v');
-      .save(props.outputPath);
+      .save(outputPath);
   });
 }
 
 export async function mixAudioAndVideo(props: {
   videoPath: string;
   audioPath: string;
+}): Promise<{
   outputPath: string;
-}): Promise<boolean> {
+}> {
+  const outputPath = path.join(AppConfig.tmpDir, `mix-audio-and-video-${generateSecureRandomHash()}.mp4`);
   return new Promise((resolve, reject) => {
     ffmpeg()
       .addInput(props.videoPath)
@@ -38,16 +48,18 @@ export async function mixAudioAndVideo(props: {
         reject(error);
       })
       .on("end", () => {
-        resolve(true);
+        resolve({ outputPath });
       })
-      .saveToFile(props.outputPath);
+      .saveToFile(outputPath);
   });
 }
 
 export async function concatVideos(props: {
   videoPaths: string[];
+}): Promise<{
   outputPath: string;
-}): Promise<boolean> {
+}> {
+  const outputPath = path.join(AppConfig.tmpDir, `mix-audio-and-video-${generateSecureRandomHash()}.mp4`);
   const command = ffmpeg();
   props.videoPaths.forEach((videoPath) => {
     command.input(videoPath);
@@ -59,8 +71,8 @@ export async function concatVideos(props: {
         reject(error);
       })
       .on("end", () => {
-        resolve(true);
+        resolve({ outputPath });
       })
-      .mergeToFile(props.outputPath);
+      .mergeToFile(outputPath);
   });
 }

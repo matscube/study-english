@@ -5,6 +5,7 @@ import { Manuscript } from "./types";
 import { ttsEnglish, ttsJapanese } from "./tts";
 import { scripts } from "./assets/scripts";
 import { generateScripts } from "./script";
+import { AppConfig } from "./config";
 
 /**
  * How to make a video
@@ -20,116 +21,103 @@ async function createVideo(script: Manuscript, index: number): Promise<{ normalP
   console.log(`creating video ${index}... (script: ${script.ja}/${script.en})`);
 
   // Silent video
-  await createImage({
+  const imageResult = await createImage({
     index,
     script,
-    japaneseImagePath: `./out/image-${index}-ja.png`,
-    englishImagePath: `./out/image-${index}-en.png`,
-    japaneseReviewImagePath: `./out/image-${index}-ja-review.png`,
-    englishReviewImagePath: `./out/image-${index}-en-review.png`,
-  }),
-  await Promise.all([
+  });
+
+  const imageVideoResult = await Promise.all([
     createVideoFromImage({
-      imagePath: `./out/image-${index}-ja.png`,
-      outputPath: `./out/image-${index}-ja.mp4`,
+      imagePath: imageResult.japaneseImagePath,
     }),
     createVideoFromImage({
-      imagePath: `./out/image-${index}-en.png`,
-      outputPath: `./out/image-${index}-en.mp4`,
+      imagePath: imageResult.englishImagePath,
     }),
     createVideoFromImage({
-      imagePath: `./out/image-${index}-ja-review.png`,
-      outputPath: `./out/image-${index}-ja-review.mp4`,
+      imagePath: imageResult.japaneseReviewImagePath,
     }),
     createVideoFromImage({
-      imagePath: `./out/image-${index}-en-review.png`,
-      outputPath: `./out/image-${index}-en-review.mp4`,
+      imagePath: imageResult.englishReviewImagePath,
     }),
   ]);
 
   // Audio
-  await Promise.all([
+  const ttsResult = await Promise.all([
     ttsJapanese({
       text: script.ja,
-      output: `./out/speech-${index}-ja.mp3`,
     }),
     ttsEnglish({
       text: script.en,
-      output: `./out/speech-${index}-en.mp3`,
     })
   ])
 
-  await Promise.all([
-    volumeUp({
-      audioPath: `./out/speech-${index}-ja.mp3`,
-      outputPath: `./out/speech-${index}-ja-volume-up.mp3`,
-    }),
-    volumeUp({
-      audioPath: `./out/speech-${index}-en.mp3`,
-      outputPath: `./out/speech-${index}-en-volume-up.mp3`,
-    })
-  ]);
+  // await Promise.all([
+  //   volumeUp({
+  //     audioPath: `./out/speech-${index}-ja.mp3`,
+  //     outputPath: `./out/speech-${index}-ja-volume-up.mp3`,
+  //   }),
+  //   volumeUp({
+  //     audioPath: `./out/speech-${index}-en.mp3`,
+  //     outputPath: `./out/speech-${index}-en-volume-up.mp3`,
+  //   })
+  // ]);
 
-  await Promise.all([
+  const concatAudiosResult = await Promise.all([
+    // ja + silent
     concatAudios({
       audioPaths: [
-        `./out/speech-${index}-ja-volume-up.mp3`,
-        `src/assets/audios/silence_5_seconds.mp3`,
+        ttsResult[0].outputPath,
+        AppConfig.silentVideoPath,
       ],
-      outputPath: `./out/speech-${index}-ja-with-silence.mp3`,
     }),
+    // en + silent
     concatAudios({
       audioPaths: [
-        `./out/speech-${index}-en-volume-up.mp3`,
-        `src/assets/audios/silence_5_seconds.mp3`,
+        ttsResult[1].outputPath,
+        AppConfig.silentVideoPath,
       ],
-      outputPath: `./out/speech-${index}-en-with-silence.mp3`,
     })
   ]);
 
   // Mix audio to video
-  await Promise.all([
+  const mixAudioAndVideoResult = await Promise.all([
+    // ja
     mixAudioAndVideo({
-      videoPath: `./out/image-${index}-ja.mp4`,
-      audioPath: `./out/speech-${index}-ja-with-silence.mp3`,
-      outputPath: `./out/output-${index}-ja.mp4`,
+      videoPath: imageVideoResult[0].outputPath,
+      audioPath: concatAudiosResult[0].outputPath,
     }),
+    // en
     mixAudioAndVideo({
-      videoPath: `./out/image-${index}-en.mp4`,
-      audioPath: `./out/speech-${index}-en-with-silence.mp3`,
-      outputPath: `./out/output-${index}-en.mp4`,
+      videoPath: imageVideoResult[1].outputPath,
+      audioPath: concatAudiosResult[1].outputPath,
     }),
+    // review ja
     mixAudioAndVideo({
-      videoPath: `./out/image-${index}-ja-review.mp4`,
-      audioPath: `./out/speech-${index}-ja-with-silence.mp3`,
-      outputPath: `./out/output-${index}-ja-review.mp4`,
+      videoPath: imageVideoResult[2].outputPath,
+      audioPath: concatAudiosResult[0].outputPath,
     }),
+    // review en
     mixAudioAndVideo({
-      videoPath: `./out/image-${index}-en-review.mp4`,
-      audioPath: `./out/speech-${index}-en-with-silence.mp3`,
-      outputPath: `./out/output-${index}-en-review.mp4`,
+      videoPath: imageVideoResult[3].outputPath,
+      audioPath: concatAudiosResult[1].outputPath,
     }),
   ]);
 
   // Concat videos
-  await Promise.all([
+  const concatVideosResult = await Promise.all([
     await concatVideos({
-      // repeat the English video twice
-      // videoPaths: [`./out/output-${index}-ja.mp4`, `./out/output-${index}-en.mp4`, `./out/output-${index}-en.mp4`],
-      videoPaths: [`./out/output-${index}-ja.mp4`, `./out/output-${index}-en.mp4`],
-      outputPath: `./out/output-${index}.mp4`,
+      // video
+      videoPaths: [mixAudioAndVideoResult[0].outputPath, mixAudioAndVideoResult[1].outputPath],
     }),
     await concatVideos({
-      // repeat the English video twice
-      // videoPaths: [`./out/output-${index}-ja-review.mp4`, `./out/output-${index}-en-review.mp4`, `./out/output-${index}-en-review.mp4`],
-      videoPaths: [`./out/output-${index}-ja-review.mp4`, `./out/output-${index}-en-review.mp4`],
-      outputPath: `./out/output-${index}-review.mp4`,
+      // review video
+      videoPaths: [mixAudioAndVideoResult[2].outputPath, mixAudioAndVideoResult[3].outputPath],
     }),
   ]);
   console.log(`created video ${index}!`);
   return {
-    normalPath: `./out/output-${index}.mp4`,
-    reviewPath: `./out/output-${index}-review.mp4`,
+    normalPath: concatVideosResult[0].outputPath,
+    reviewPath: concatVideosResult[1].outputPath,
   };
 }
 
@@ -146,15 +134,28 @@ async function run() {
   const sortedVideoPaths = normalVideoPaths.concat(reviewVideoPaths);
   console.log({ sortedVideoPaths })
 
-  await concatVideos({ videoPaths: sortedVideoPaths, outputPath: `out/output.mp4`})
+  const result = await concatVideos({ videoPaths: sortedVideoPaths })
+  console.log({ result });
 
   console.log('Done!');
 }
 
-// run();
+run();
 
 // For image rendering test
 // testRenderImage();
 
 // For generating scripts
 // generateScripts();
+
+// For audio test
+// await Promise.all([
+//   ttsJapanese({
+//     text: script.ja,
+//     output: `./out/speech-${index}-ja.mp3`,
+//   }),
+//   ttsEnglish({
+//     text: script.en,
+//     output: `./out/speech-${index}-en.mp3`,
+//   })
+// ])

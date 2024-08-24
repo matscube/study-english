@@ -1,3 +1,7 @@
+import path from "path";
+import { AppConfig } from "./config";
+import { generateSecureRandomHash } from "./util";
+
 const ffmpeg = require("fluent-ffmpeg");
 
 export async function volumeUp(props: {
@@ -20,8 +24,10 @@ export async function volumeUp(props: {
 
 export async function concatAudios(props: {
   audioPaths: string[];
+}): Promise<{
   outputPath: string;
-}): Promise<boolean> {
+}> {
+  const outputPath = path.join(AppConfig.tmpDir, `concat-audios-result-${generateSecureRandomHash()}.mp3`);
   const fileSequence: string[] = [];
 
   props.audioPaths.forEach((file, index) => {
@@ -39,8 +45,10 @@ export async function concatAudios(props: {
         reject(err);
       })
       .on("end", () => {
-        resolve(true);
+        resolve({
+          outputPath,
+        });
       })
-      .mergeToFile(props.outputPath);
+      .mergeToFile(outputPath);
   });
 }
