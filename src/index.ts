@@ -6,6 +6,8 @@ import { ttsEnglish, ttsJapanese } from "./tts";
 import { scripts } from "./assets/scripts";
 import { generateScripts } from "./script";
 import { AppConfig } from "./config";
+import path from "path";
+import fs from "fs";
 
 /**
  * How to make a video
@@ -128,14 +130,18 @@ async function run() {
     return createVideo(script, index);
   });
   const videoPaths = await Promise.all(operations)
-  console.log({ videoPaths })
+  // console.log({ videoPaths })
   const normalVideoPaths = videoPaths.map(({ normalPath }) => normalPath);
   const reviewVideoPaths = videoPaths.map(({ reviewPath }) => reviewPath);
   const sortedVideoPaths = normalVideoPaths.concat(reviewVideoPaths);
-  console.log({ sortedVideoPaths })
+  // console.log({ sortedVideoPaths })
 
   const result = await concatVideos({ videoPaths: sortedVideoPaths })
-  console.log({ result });
+  // console.log({ result });
+
+  const outputPath = path.join(AppConfig.outDir, 'output.mp4');
+  await fs.promises.copyFile(result.outputPath, outputPath);
+  console.log(`Output: ${outputPath}`);
 
   console.log('Done!');
 }
